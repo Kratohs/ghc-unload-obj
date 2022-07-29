@@ -1,0 +1,2 @@
+HSghc-load-obj-0.1.0.0-27R1afYGHVmIvmwCWVVUrI.o
+ghczmloadzmobjzm0zi1zi0zi0zm27R1afYGHVmIvmwCWVVUrI_Lib_f_closure
