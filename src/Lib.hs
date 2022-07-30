@@ -2,11 +2,11 @@
 -- loadObj, making the problem more noticeable. The memory is never freed either
 -- way.
 
--- {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 
 module Lib where
 
--- foreign export ccall "hs_f" f :: Int -> Int
+foreign export ccall "hs_f" f :: Int -> Int
 
 f :: Int -> Int
 f x = x * x
