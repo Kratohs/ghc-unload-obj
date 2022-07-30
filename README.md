@@ -1,4 +1,4 @@
-# ghc-load-obj
+# ghc-unload-obj
 Interactive demo of unloadObj failing to free memory on Windows.
 
 After building, copy the pre-compiled .o file and strings.txt from the root
@@ -15,10 +15,10 @@ Any .o file should actually work for demonstrating the unloading problem, but it
 won't be resolved unless it only depends on base, and it needs a symbol pointing
 to a function of type (Int -> Int) in order to be used.
 
-Commands:
-  l    - Load, resolve, and lookup the function from the .o file
-  u    - Unload the object code
-  r(n) - Load, unload, and performMajorGC in a loop n times. e.g. r1000
-  p    - Print f(2), where the default f is (\x -> x + 1) and the f in the .o file is (\x -> x * x)
-  g    - Call performMajorGC
-  q    - Quit
+Commands:  
+  l    - Load, resolve, and lookup the function from the .o file  
+  u    - Unload the object code  
+  r(n) - Load, unload, and performMajorGC in a loop n times. e.g. r1000  
+  p    - Print f(2), where the default f is (\x -> x + 1) and the f in the .o file is (\x -> x * x)  
+  g    - Call performMajorGC  
+  q    - Quit  
