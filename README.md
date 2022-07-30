@@ -1,5 +1,5 @@
 # ghc-unload-obj
-Interactive demo of unloadObj failing to free memory on Windows.
+Interactive demo of unloadObj failing to free memory with GHC 9.0.2 on Windows.
 
 After building, copy the pre-compiled .o file and strings.txt from the root
 folder to the same directory as the executable.
