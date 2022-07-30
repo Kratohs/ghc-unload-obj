@@ -4,6 +4,8 @@ Interactive demo of unloadObj failing to free memory on Windows.
 After building, copy the pre-compiled .o file and strings.txt from the root
 folder to the same directory as the executable.
 
+Type 'r1000' and press enter to see roughly 800MB allocated and never freed.
+
 If using a recompiled .o file, copy it to the same directory as the executable
 and make sure that the first line of strings.txt is the .o file's file name
 including the extension, and that the second line is its symbol name that
