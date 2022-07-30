@@ -1,6 +1,6 @@
 -- The two FFI-related lines make it so that the entire .o file is loaded during
--- loadObj, making the problem more noticeable. The memory is never freed either
--- way.
+-- resolveObjs, making the problem more noticeable. The memory is never freed
+-- either way.
 
 {-# LANGUAGE ForeignFunctionInterface #-}
 

@@ -32,6 +32,9 @@ executable ghc-load-obj-exe
   ghc-options: -W -Werror -rtsopts "-with-rtsopts=--copying-gc" -O2
   build-depends:
       base >=4.7 && <5
+
+    -- Either 'ghc' or 'ghc-lib' will work for loading base libraries
     , ghc
+    -- , ghc-lib
     , ghc-paths
   default-language: Haskell2010

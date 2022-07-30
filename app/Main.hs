@@ -48,9 +48,9 @@ initLoader :: IO ()
 initLoader = do
     c_initLinker 0
 
-    -- This section can be removed to remove the dependencies on 'ghc' and
-    -- 'ghc-paths', but resolving and lookups won't work then, only load and
-    -- unload. The problem persists either way.
+    -- This section can be removed to remove the dependencies on 'ghc' or
+    -- 'ghc-lib', and 'ghc-paths', but resolving and lookups won't work then,
+    -- only load and unload. The leaks happen either way.
     runGhc (Just libdir) $ do
         dynFlags <- getSessionDynFlags
         setSessionDynFlags $
