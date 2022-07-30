@@ -2,13 +2,14 @@
 
 module Main (main) where
 
-import GHC.Exts
+import Control.Monad.IO.Class
 import Foreign
 import Foreign.C
-import System.Mem
-import System.Posix.Internals
-import Text.Read
 import GHC
+import GHC.Exts
+import GHC.Paths
+import System.Mem
+import Text.Read
 
 main :: IO ()
 main = do
@@ -29,7 +30,7 @@ loop f = do
             loop defaultF
         ('r' : numText) | (Just num) <- readMaybe numText -> do
             reload num
-            loop f
+            loop defaultF
         "p" -> do
             print (f 2)
             loop f
@@ -44,33 +45,55 @@ loop f = do
             loop f
 
 initLoader :: IO ()
-initLoader =
+initLoader = do
     c_initLinker 0
+
+    -- This section can be removed to remove the dependencies on 'ghc' and
+    -- 'ghc-paths', but resolving and lookups won't work then, only load and
+    -- unload. The problem persists either way.
+    runGhc (Just libdir) $ do
+        dynFlags <- getSessionDynFlags
+        setSessionDynFlags $
+            dynFlags
+                { hscTarget = HscInterpreted
+                , ghcLink = LinkInMemory
+                }
+        setTargets []
+        loadResult <- load LoadAllTargets
+        liftIO $ case loadResult of
+            Succeeded -> putStrLn "See README.md for commands"
+            Failed    -> putStrLn "Couldn't load base libraries"
 
 loadResolveLookup :: IO LoadedFunc
 loadResolveLookup = do
     (path, symbolName) <- readStrings
-    _loadOk <- withFilePath path c_loadObj
-    resolved <- (/= 0) <$> c_resolveObjs
-    if not resolved then do
-        putStrLn "Loaded the obj, but couldn't resolve it"
+    loaded <- (/= 0) <$> withCWString path c_loadObj
+    if not loaded then do
+        putStrLn "Couldn't load the obj"
         pure defaultF
     else do
-        ptr@(Ptr addr) <- withCString symbolName c_lookupSymbol
-        if ptr == nullPtr then do
-            putStrLn "Symbol not found"
+        resolved <- (/= 0) <$> c_resolveObjs
+        if not resolved then do
+            putStrLn "Couldn't resolve obj"
             pure defaultF
         else do
-            case addrToAny# addr of
-                (# val #) -> do
-                    putStrLn "Loaded obj"
-                    pure val
+            ptr@(Ptr addr) <- withCString symbolName c_lookupSymbol
+            if ptr == nullPtr then do
+                putStrLn "Symbol not found"
+                pure defaultF
+            else do
+                case addrToAny# addr of
+                    (# val #) -> do
+                        putStrLn "Loaded obj"
+                        pure val
 
 unload :: IO ()
 unload = do
     path <- readObjPath
-    _unloadResult <- withFilePath path c_unloadObj
-    putStrLn "Unloaded obj"
+    unloaded <- (/= 0) <$> withCWString path c_unloadObj
+    if unloaded
+        then putStrLn "Unloaded obj"
+        else putStrLn "Couldn't unload the obj"
 
 reload :: Int -> IO ()
 reload n 
@@ -79,17 +102,17 @@ reload n
         path <- readObjPath
         go path n
         putStrLn $
-            "Reloaded " ++ show n ++ " times without resolving or looking up\
-            \ any symbols, and performed a major GC after each unload"
+            "Reloaded " ++ show n ++ " times without looking up any symbols,\
+            \ and performed a major GC after each unload"
   where
     go _ 0 = pure ()
     go path n = do
-        _loadResult <- withFilePath path c_loadObj
+        _loadResult <- withCWString path c_loadObj
 
-        -- Resolving will allocate more memory
+        -- Resolving is unnecessary, but will allocate more (unfreed) memory
         _resolveResult <- c_resolveObjs
 
-        _unloadResult <- withFilePath path c_unloadObj
+        _unloadResult <- withCWString path c_unloadObj
 
         performMajorGC
         go path (n - 1)
@@ -106,7 +129,7 @@ readStrings = do
     pure (o, sym)
 
 foreign import ccall "initLinker_"  c_initLinker   :: CInt -> IO ()
-foreign import ccall "loadObj"      c_loadObj      :: CFilePath -> IO Int
+foreign import ccall "loadObj"      c_loadObj      :: CWString -> IO Int
 foreign import ccall "resolveObjs"  c_resolveObjs  :: IO Int
 foreign import ccall "lookupSymbol" c_lookupSymbol :: CString -> IO (Ptr a)
-foreign import ccall "unloadObj"    c_unloadObj    :: CFilePath -> IO Int
+foreign import ccall "unloadObj"    c_unloadObj    :: CWString -> IO Int
